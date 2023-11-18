@@ -4,7 +4,6 @@ const imageSize = document.getElementById('imageSize');
 const rotateNeg90 = document.getElementById('rotateNeg90');
 ;
 const rotatePos90 = document.getElementById('rotatePos90');
-const invertColors = document.getElementById('invertColors');
 const brightness = document.getElementById('brightness');
 const brightnessUp = document.getElementById('brightnessUp');
 const brightnessDown = document.getElementById('brightnessDown');

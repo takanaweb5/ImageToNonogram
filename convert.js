@@ -8,6 +8,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+const invertColors = document.getElementById('invertColors');
 const image = document.getElementById('displayedImage');
 const execute = document.getElementById('execute');
 const makeHint = document.getElementById('makeHint');
@@ -27,21 +28,19 @@ let pixelArray;
  * 白黒画像からお絵かきロジックのヒントを作成し、クリップボードにコピーする
  */
 function makeHints() {
-    return __awaiter(this, void 0, void 0, function* () {
-        console.log('makeHints');
-        const masArray = convertToBlackOrWhite(pixelArray, Number(brightness.value), Number(red.value), Number(green.value), Number(blue.value));
-        let clipText = "";
-        //masArrayの行と列を入れ替えて縦のヒントを作成
-        const transform = Array.from({ length: masArray[0].length }, (_, i) => masArray.map(row => row[i]));
-        const colHInts = makeHintArray(transform);
-        console.log('[縦ヒント]' + '\n' + colHInts.join('\n') + '\n');
-        clipText += '\t' + colHInts.join('\t') + '\n';
-        //横のヒントを作成
-        const rowHInts = makeHintArray(masArray);
-        console.log('[横ヒント]' + '\n' + rowHInts.join('\n') + '\n');
-        clipText += rowHInts.join('\n') + '\n';
-        navigator.clipboard.writeText(clipText);
-    });
+    console.log('makeHints');
+    const masArray = convertToBlackOrWhite(pixelArray, Number(brightness.value), Number(red.value), Number(green.value), Number(blue.value));
+    let clipText = "";
+    //masArrayの行と列を入れ替えて縦のヒントを作成
+    const transform = Array.from({ length: masArray[0].length }, (_, i) => masArray.map(row => row[i]));
+    const colHInts = makeHintArray(transform);
+    console.log('[縦ヒント]' + '\n' + colHInts.join('\n') + '\n');
+    clipText += '\t' + colHInts.join('\t') + '\n';
+    //横のヒントを作成
+    const rowHInts = makeHintArray(masArray);
+    console.log('[横ヒント]' + '\n' + rowHInts.join('\n') + '\n');
+    clipText += rowHInts.join('\n') + '\n';
+    navigator.clipboard.writeText(clipText);
 }
 /**
  * 2次元masArray配列からお絵かきロジックのヒント配列を生成する
@@ -72,10 +71,7 @@ function makeHintArray(masArray) {
             blackCounterArray.push(blackCounter);
         }
         //blackCounterArrayに格納された値を,区切りの文字列のして配列にpush
-        let hint = "0";
-        if (blackCounterArray.length > 0) {
-            hint = blackCounterArray.join(',');
-        }
+        const hint = blackCounterArray.length > 0 ? blackCounterArray.join(',') : "0";
         result.push(hint);
     }
     return result;
@@ -84,37 +80,40 @@ function makeHintArray(masArray) {
  * テキストをクリップボードにコピーする関数
  * @param {string} text - コピーするテキスト
  */
-function copyToClipboard(text) {
-    // Clipboard APIがサポートされているか確認
-    if (!navigator.clipboard) {
-        console.error('Clipboard APIはサポートされていません');
-        return;
-    }
-    // テキストをクリップボードにコピー
-    navigator.clipboard.writeText(text)
-        .then(() => {
-        console.log('クリップボードにコピーしました: ', text);
-    })
-        .catch(err => {
-        console.error('クリップボードにコピーできませんでした: ', err);
-    });
-}
+// function copyToClipboard(text: string) {
+//   // Clipboard APIがサポートされているか確認
+//   if (!navigator.clipboard) {
+//     console.error('Clipboard APIはサポートされていません');
+//     return;
+//   }
+//   // テキストをクリップボードにコピー
+//   navigator.clipboard.writeText(text)
+//     .then(() => {
+//       console.log('クリップボードにコピーしました: ', text);
+//     })
+//     .catch(err => {
+//       console.error('クリップボードにコピーできませんでした: ', err);
+//     });
+// }
 function convert() {
     return __awaiter(this, void 0, void 0, function* () {
         console.log('convert');
-        //サイズを変更
-        const width = parseInt(imageSize.value);
-        const height = parseInt(imageSize.value) * image.height / image.width;
-        canvas.width = width;
-        canvas.height = height;
-        ctx === null || ctx === void 0 ? void 0 : ctx.drawImage(image, 0, 0, width, height);
-        const imageData = ctx === null || ctx === void 0 ? void 0 : ctx.getImageData(0, 0, width, height);
-        const data = imageData === null || imageData === void 0 ? void 0 : imageData.data;
+        let width = 0;
+        let height = 0;
         if (!pixelArray) {
-            pixelArray = createPixelArray(data, width, height);
+            //サイズを変更
+            width = parseInt(imageSize.value);
+            height = parseInt(imageSize.value) * image.height / image.width;
+            canvas.width = width;
+            canvas.height = height;
+            ctx.drawImage(image, 0, 0, width, height);
+            pixelArray = createPixelArray(ctx.getImageData(0, 0, width, height).data, width, height);
+        }
+        else {
+            width = canvas.width;
+            height = canvas.height;
         }
         const MasArray = convertToBlackOrWhite(pixelArray, Number(brightness.value), Number(red.value), Number(green.value), Number(blue.value));
-        // const newImageData = createImageDataFromPixelArray(newPixelArray);
         //サイズを示す文字列を生成（"Xpx Xpx Xpx ..."）
         const gridColumns = `repeat(${width}, 5px)`;
         const gridRows = `repeat(${height}, 5px)`;
@@ -201,7 +200,9 @@ function convertToBlackOrWhite(pixelArray, brightness, red, green, blue) {
             //   pixel.red > red ||
             //   pixel.green > green ||
             //   pixel.blue > blue;
-            const isWhite = (average > 127 + brightness);
+            let isWhite = (average > 127 + brightness);
+            if (invertColors.checked == true)
+                isWhite = !isWhite;
             // 白なら1、黒なら0を設定
             const convertedPixel = isWhite ? 1 : 0;
             row.push(convertedPixel);

@@ -2,7 +2,6 @@ const imageInput = document.getElementById('imageInput') as HTMLInputElement;
 const imageSize = document.getElementById('imageSize') as HTMLInputElement;
 const rotateNeg90 = document.getElementById('rotateNeg90') as HTMLInputElement;;
 const rotatePos90 = document.getElementById('rotatePos90') as HTMLInputElement;
-const invertColors = document.getElementById('invertColors') as HTMLElement;
 
 const brightness = document.getElementById('brightness') as HTMLInputElement;
 const brightnessUp = document.getElementById('brightnessUp') as HTMLElement;

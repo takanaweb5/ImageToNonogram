@@ -1,8 +1,9 @@
+const invertColors = document.getElementById('invertColors') as HTMLInputElement;
 const image = document.getElementById('displayedImage') as HTMLImageElement;
 const execute = document.getElementById('execute') as HTMLElement;
 const makeHint = document.getElementById('makeHint') as HTMLElement;
 const canvas = document.getElementById('canvas') as HTMLCanvasElement;
-const ctx = canvas.getContext('2d');
+const ctx = canvas.getContext('2d') as CanvasRenderingContext2D;
 const grid = document.getElementById("grid") as HTMLElement;
 
 execute.addEventListener('click', convert);
@@ -71,10 +72,7 @@ function makeHintArray(masArray: CellColor[][]): string[] {
       blackCounterArray.push(blackCounter);
     }
     //blackCounterArrayに格納された値を,区切りの文字列のして配列にpush
-    let hint = "0";
-    if (blackCounterArray.length > 0) {
-      hint = blackCounterArray.join(',');
-    }
+    const hint = blackCounterArray.length > 0 ? blackCounterArray.join(',') : "0";
     result.push(hint);
   }
   return result;
@@ -104,23 +102,25 @@ function makeHintArray(masArray: CellColor[][]): string[] {
 async function convert() {
   console.log('convert');
 
-  //サイズを変更
-  const width = parseInt(imageSize.value);
-  const height = parseInt(imageSize.value) * image.height / image.width;
-
-  canvas.width = width;
-  canvas.height = height;
-  ctx?.drawImage(image, 0, 0, width, height);
-
-  const imageData = ctx?.getImageData(0, 0, width, height);
-  const data = imageData?.data;
+  let width = 0;
+  let height = 0;
 
   if (!pixelArray) {
-    pixelArray = createPixelArray(data as Uint8ClampedArray, width, height);
+    //サイズを変更
+    width = parseInt(imageSize.value);
+    height = parseInt(imageSize.value) * image.height / image.width;
+
+    canvas.width = width;
+    canvas.height = height;
+    ctx.drawImage(image, 0, 0, width, height);
+
+    pixelArray = createPixelArray(ctx.getImageData(0, 0, width, height).data, width, height);
+  } else {
+    width = canvas.width;
+    height = canvas.height;
   }
 
   const MasArray = convertToBlackOrWhite(pixelArray, Number(brightness.value), Number(red.value), Number(green.value), Number(blue.value));
-  // const newImageData = createImageDataFromPixelArray(newPixelArray);
 
   //サイズを示す文字列を生成（"Xpx Xpx Xpx ..."）
   const gridColumns = `repeat(${width}, 5px)`;
@@ -212,7 +212,8 @@ function convertToBlackOrWhite(pixelArray: RGBAColor[][], brightness: number, re
       //   pixel.red > red ||
       //   pixel.green > green ||
       //   pixel.blue > blue;
-      const isWhite = (average > 127 + brightness);
+      let isWhite = (average > 127 + brightness);
+      if (invertColors.checked == true) isWhite = !isWhite;
       // 白なら1、黒なら0を設定
       const convertedPixel: CellColor = isWhite ? 1 : 0;
       row.push(convertedPixel);
