@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <script defer src="script.js"></script>
+    <script defer src="convert.js"></script>
+    <title>Image Editor</title>
+  </head>
+  <body>
+    <label for="imageSize">画像サイズ：</label>
+    <input type="number" id="imageSize" min="0" max="200" value="80">
+    <br>
+    <input type="checkbox" id="rotateNeg90" name="rotation" class="rotation-checkbox" data-rotate="-90">
+    <label for="rotateNeg90">－９０°</label>
+    <input type="checkbox" id="rotatePos90" name="rotation" class="rotation-checkbox" data-rotate="+90">
+    <label for="rotatePos90">＋９０°</label>
+    <br>
+    <input type="checkbox" id="invertColors">
+    <label for="invertColors">色の反転</label>
+    <br>
+    <div class="adjustment-row">
+      <label for="brightness">明るさ：</label>
+      <input type="number" id="brightness" min="-255" max="255" value="0">
+      <button id="brightnessDown" class="arrow-button" data-direction="-1">←</button>
+      <button id="brightnessUp" class="arrow-button" data-direction="+1">→</button>
+    </div>
+    <div class="adjustment-row">
+      <label for="red">赤：</label>
+      <input type="number" id="red" min="-255" max="255" value="0">
+      <button id="redDown" class="arrow-button" data-direction="-1">←</button>
+      <button id="redUp" class="arrow-button" data-direction="+1">→</button>
+    </div>
+    <div class="adjustment-row">
+      <label for="green">緑：</label>
+      <input type="number" id="green" min="-255" max="255" value="0">
+      <button id="greenDown" class="arrow-button" data-direction="-1">←</button>
+      <button id="greenUp" class="arrow-button" data-direction="+1">→</button>
+    </div>
+    <div class="adjustment-row">
+      <label for="blue">青：</label>
+      <input type="number" id="blue" min="-255" max="255" value="0">
+      <button id="blueDown" class="arrow-button" data-direction="-1">←</button>
+      <button id="blueUp" class="arrow-button" data-direction="+1">→</button>
+    </div>
+    <br>
+    <button id="execute" class="execute">変換</button>
+    <button id="makeHint" class="makeHint">ヒント作成</button>
+    <br>
+    <br>
+    <img id="displayedImage" alt="Displayed Image">
+    <div  id="grid" class="grid"></div>
+    <canvas id="canvas"></canvas>
+    <input type="file" id="imageInput" accept="image/*">
+    <br>
+  </body>
+</html>
