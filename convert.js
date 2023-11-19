@@ -17,29 +17,33 @@ const ctx = canvas.getContext('2d');
 const grid = document.getElementById("grid");
 execute.addEventListener('click', convert);
 makeHint.addEventListener('click', makeHints);
+let Cells;
 var CellColor;
 (function (CellColor) {
     CellColor[CellColor["White"] = 1] = "White";
     CellColor[CellColor["Black"] = 0] = "Black";
     CellColor["Unknown"] = "";
 })(CellColor || (CellColor = {}));
-let pixelArray;
+const MassColorMap = {
+    [CellColor.White]: "white",
+    [CellColor.Black]: "black",
+    [CellColor.Unknown]: "gray",
+};
+let PixelArray;
 /**
  * 白黒画像からお絵かきロジックのヒントを作成し、クリップボードにコピーする
  */
 function makeHints() {
     console.log('makeHints');
-    const masArray = convertToBlackOrWhite(pixelArray, Number(brightness.value), Number(red.value), Number(green.value), Number(blue.value));
-    let clipText = "";
+    const massArray = convertToBlackOrWhite(PixelArray, Number(brightness.value), Number(red.value), Number(green.value), Number(blue.value));
     //masArrayの行と列を入れ替えて縦のヒントを作成
-    const transform = Array.from({ length: masArray[0].length }, (_, i) => masArray.map(row => row[i]));
+    const transform = Array.from({ length: massArray[0].length }, (_, i) => massArray.map(row => row[i]));
     const colHInts = makeHintArray(transform);
     console.log('[縦ヒント]' + '\n' + colHInts.join('\n') + '\n');
-    clipText += '\t' + colHInts.join('\t') + '\n';
     //横のヒントを作成
-    const rowHInts = makeHintArray(masArray);
+    const rowHInts = makeHintArray(massArray);
     console.log('[横ヒント]' + '\n' + rowHInts.join('\n') + '\n');
-    clipText += rowHInts.join('\n') + '\n';
+    const clipText = '\t' + colHInts.join('\t') + '\n' + rowHInts.join('\n') + '\n';
     navigator.clipboard.writeText(clipText);
 }
 /**
@@ -49,14 +53,14 @@ function makeHints() {
  */
 function makeHintArray(masArray) {
     const result = [];
-    const Cols = masArray[0].length;
-    const Rows = masArray.length;
-    for (let y = 0; y < Rows; y++) {
+    const cols = masArray[0].length;
+    const rows = masArray.length;
+    for (let y = 0; y < rows; y++) {
         let blackCounter = 0;
         const blackCounterArray = [];
         //もしimageArray[y][x]が1の場合、blackCounterを増やす
         //違えばblackCounterの値を配列にpush
-        for (let x = 0; x < Cols; x++) {
+        for (let x = 0; x < cols; x++) {
             if (masArray[y][x] === CellColor.Black) {
                 blackCounter++;
             }
@@ -98,22 +102,14 @@ function makeHintArray(masArray) {
 function convert() {
     return __awaiter(this, void 0, void 0, function* () {
         console.log('convert');
-        let width = 0;
-        let height = 0;
-        if (!pixelArray) {
-            //サイズを変更
-            width = parseInt(imageSize.value);
-            height = parseInt(imageSize.value) * image.height / image.width;
-            canvas.width = width;
-            canvas.height = height;
-            ctx.drawImage(image, 0, 0, width, height);
-            pixelArray = createPixelArray(ctx.getImageData(0, 0, width, height).data, width, height);
-        }
-        else {
-            width = canvas.width;
-            height = canvas.height;
-        }
-        const MasArray = convertToBlackOrWhite(pixelArray, Number(brightness.value), Number(red.value), Number(green.value), Number(blue.value));
+        //サイズを変更
+        const width = parseInt(imageSize.value);
+        const height = parseInt(imageSize.value) * image.height / image.width;
+        canvas.width = width;
+        canvas.height = height;
+        ctx.drawImage(image, 0, 0, width, height);
+        PixelArray = createPixelArray(ctx.getImageData(0, 0, width, height).data, width, height);
+        const massArray = convertToBlackOrWhite(PixelArray, Number(brightness.value), Number(red.value), Number(green.value), Number(blue.value));
         //サイズを示す文字列を生成（"Xpx Xpx Xpx ..."）
         const gridColumns = `repeat(${width}, 5px)`;
         const gridRows = `repeat(${height}, 5px)`;
@@ -122,7 +118,7 @@ function convert() {
         while (grid.firstChild) {
             grid.removeChild(grid.firstChild);
         }
-        const grid2 = [];
+        Cells = [];
         grid.style.gridTemplateColumns = gridColumns;
         grid.style.gridTemplateRows = gridRows;
         for (let row = 0; row < height; row++) {
@@ -133,25 +129,32 @@ function convert() {
                 // cell.addEventListener("click", function () {
                 //   //ここにトグル処理を
                 // });
-                if (MasArray[row][col] === CellColor.White) {
-                    cell.style.backgroundColor = "white";
-                }
-                else if (MasArray[row][col] === CellColor.Black) {
-                    cell.style.backgroundColor = "black";
-                }
+                grid.appendChild(cell);
                 rowArray.push(cell);
             }
-            grid2.push(rowArray);
+            Cells.push(rowArray);
         }
         for (let row = 0; row < height; row++) {
             for (let col = 0; col < width; col++) {
-                grid.appendChild(grid2[row][col]);
+                Cells[row][col].style.backgroundColor = MassColorMap[massArray[row][col]];
             }
         }
-        // 画像を表示
-        // ctx?.putImageData(newImageData!, 0, 0);
         image.style.display = 'none';
     });
+}
+function colorChange() {
+    console.log('colorChange');
+    const width = canvas.width;
+    const height = canvas.height;
+    const massArray = convertToBlackOrWhite(PixelArray, Number(brightness.value), Number(red.value), Number(green.value), Number(blue.value));
+    console.log(width, height);
+    for (let row = 0; row < height; row++) {
+        for (let col = 0; col < width; col++) {
+            Cells[row][col].style.backgroundColor = "red";
+            Cells[row][col].style.backgroundColor = MassColorMap[massArray[row][col]];
+            console.log(row, col);
+        }
+    }
 }
 /**
  * 与えられたUint8ClampedArrayからRGBAColor型の二次元配列を生成する関数
@@ -186,7 +189,8 @@ function createPixelArray(data, width, height) {
  * @returns {RGBAColor[][]} - 白黒に変換されたRGBAColor型の二次元配列
  */
 function convertToBlackOrWhite(pixelArray, brightness, red, green, blue) {
-    const grid = [];
+    console.log('convertToBlackOrWhite' + ` brightness:${brightness}  red:${red}  green:${green}  blue:${blue}`);
+    const result = [];
     for (let y = 0; y < pixelArray.length; y++) {
         const row = [];
         for (let x = 0; x < pixelArray[y].length; x++) {
@@ -195,11 +199,6 @@ function convertToBlackOrWhite(pixelArray, brightness, red, green, blue) {
             pixel.green = pixel.green * (1 + green / 100);
             pixel.blue = pixel.blue * (1 + blue / 100);
             const average = (pixel.red + pixel.green + pixel.blue) / 3;
-            //各色の閾値を超えているかどうかを確認して白黒に変換
-            // const isWhite = brightness > brightness ||
-            //   pixel.red > red ||
-            //   pixel.green > green ||
-            //   pixel.blue > blue;
             let isWhite = (average > 127 + brightness);
             if (invertColors.checked == true)
                 isWhite = !isWhite;
@@ -207,27 +206,7 @@ function convertToBlackOrWhite(pixelArray, brightness, red, green, blue) {
             const convertedPixel = isWhite ? 1 : 0;
             row.push(convertedPixel);
         }
-        grid.push(row);
+        result.push(row);
     }
-    return grid;
-}
-/**
- * 与えられたRGBAColor型の二次元配列からImageDataオブジェクトを生成する関数
- * @param {RGBAColor[][]} pixelArray - 変換対象のRGBAColor型の二次元配列
- * @returns {ImageData} - 生成されたImageDataオブジェクト
- */
-function createImageDataFromPixelArray(pixelArray) {
-    const width = pixelArray[0].length;
-    const height = pixelArray.length;
-    const imageData = new ImageData(width, height);
-    for (let y = 0; y < height; y++) {
-        for (let x = 0; x < width; x++) {
-            const index = (y * width + x) * 4;
-            imageData.data[index] = pixelArray[y][x].red;
-            imageData.data[index + 1] = pixelArray[y][x].green;
-            imageData.data[index + 2] = pixelArray[y][x].blue;
-            imageData.data[index + 3] = pixelArray[y][x].alpha * 255; // アルファは0から1の範囲なので255倍して整数に変換
-        }
-    }
-    return imageData;
+    return result;
 }

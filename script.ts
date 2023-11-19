@@ -31,6 +31,7 @@ const colorButtons = ['brightness', 'red', 'green', 'blue'];
 // 各ボタンにイベントハンドラを割り当てる
 for (const color of colorButtons) {
   const colorElement = document.getElementById(color) as HTMLInputElement;
+  colorElement.addEventListener('change', () => colorChange());
   /**
    * ボタンが押されている間はカウントアップを続けるイベントハンドラ
    */
@@ -43,12 +44,13 @@ for (const color of colorButtons) {
     el.addEventListener('mousedown', () => {
       isButtonPressed = true;
       adjustValue(colorElement, direction);
-
+      colorChange();
       // nミリ秒ごとに実行
-      const interval = 10;
+      const interval = 100;
       intervalId = window.setInterval(() => {
         if (isButtonPressed) {
           adjustValue(colorElement, direction);
+          colorChange();
         } else {
           clearInterval(intervalId as number);
         }
@@ -112,11 +114,10 @@ document.addEventListener('paste', (event) => {
  * @param {number} direction 増減値
  */
 function adjustValue(color: HTMLInputElement, direction: number) {
-  console.log("adjustValue", color);
   let colorValue = parseInt(color.value) || 0;
   colorValue += direction;
   color.value = colorValue.toString();
-  convert();
+  console.log("adjustValue", color.value);
 }
 
 /**
